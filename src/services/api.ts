@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// API base URL - replace with actual API endpoint when available
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+// API base URL - production backend
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://mcf-e-library-backend.onrender.com';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

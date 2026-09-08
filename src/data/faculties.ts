@@ -6,28 +6,28 @@ export interface Faculty {
 
 export const faculties: Faculty[] = [
   {
-    id: 'engineering',
-    name: 'Faculty of Engineering',
+    id: 'Faculty Of Engineering',
+    name: 'Faculty Of Engineering',
     description: 'Building the future through innovation and technology'
   },
   {
-    id: 'science',
-    name: 'Faculty of Science',
+    id: 'Faculty Of Science',
+    name: 'Faculty Of Science',
     description: 'Exploring the mysteries of the natural world'
   },
   {
-    id: 'arts',
-    name: 'Faculty of Arts',
+    id: 'Faculty Of Art',
+    name: 'Faculty Of Art',
     description: 'Nurturing creativity and human expression'
   },
   {
-    id: 'social-sciences',
-    name: 'Faculty of Social Sciences',
+    id: 'Faculty Of Social Sciences',
+    name: 'Faculty Of Social Sciences',
     description: 'Understanding society and human behavior'
   },
   {
-    id: 'education',
-    name: 'Faculty of Education',
+    id: 'Faculty Of Education',
+    name: 'Faculty Of Education',
     description: 'Shaping the minds of tomorrow'
   }
 ];

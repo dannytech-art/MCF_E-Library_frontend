@@ -2,20 +2,25 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { BookOpen, ArrowLeft, FileText } from 'lucide-react';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { BookOpen, ArrowLeft, FileText, ExternalLink } from 'lucide-react';
 import { faculties } from '../data/faculties';
 import { getMaterialsByFaculty } from '../services/materialsService';
-import { StudyMaterial } from '../data/materials';
+import { DriveFile } from '../services/facultyService';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 const DashboardPage = () => {
-  const { facultyId } = useParams<{ facultyId: string }>();
-  const [materials, setMaterials] = useState<StudyMaterial[]>([]);
+  const { facultyName } = useParams<{ facultyName: string }>(); // Changed to facultyName
+  const [materials, setMaterials] = useState<DriveFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
-  const faculty = faculties.find((f) => f.id === facultyId);
+  // Find faculty by name (decode URL encoding)
+  const decodedFacultyName = facultyName ? decodeURIComponent(facultyName) : '';
+  const faculty = faculties.find((f) => f.name === decodedFacultyName);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -23,35 +28,44 @@ const DashboardPage = () => {
       return;
     }
 
-    if (facultyId) {
-      loadMaterials(facultyId);
+    if (facultyName) {
+      loadMaterials(decodedFacultyName);
     }
-  }, [facultyId, isAuthenticated, navigate]);
+  }, [facultyName, isAuthenticated, navigate]);
 
-  const loadMaterials = async (id: string) => {
+  const loadMaterials = async (name: string) => {
     setIsLoading(true);
     try {
-      const data = await getMaterialsByFaculty(id);
-      setMaterials(data);
+      console.log('📚 Loading materials for faculty:', name);
+      const data = await getMaterialsByFaculty(name);
+      console.log('✅ Materials loaded:', data?.length || 0, 'items');
+      setMaterials(data || []);
     } catch (error) {
-      console.error('Failed to load materials:', error);
+      console.error('❌ Failed to load materials:', error);
+      showToast('error', 'Failed to load materials. Please try again.');
+      setMaterials([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleMaterialClick = (materialId: string) => {
-    navigate(`/material/${materialId}`);
+  const handleMaterialClick = (webViewLink: string) => {
+    if (webViewLink) {
+      window.open(webViewLink, '_blank');
+      showToast('info', 'Opening material in Google Drive...');
+    } else {
+      showToast('error', 'Unable to open this material');
+    }
   };
 
   if (!faculty) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md">
+        <Card className="max-w-md shadow-lg">
           <CardHeader>
             <CardTitle>Faculty Not Found</CardTitle>
             <CardDescription>
-              The requested faculty does not exist.
+              The requested faculty "{decodedFacultyName}" does not exist.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -68,12 +82,12 @@ const DashboardPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-navy text-white py-8">
+      <div className="bg-gradient-to-r from-navy to-blue-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="text-white hover:bg-gray-800 mb-4"
+            className="text-white hover:bg-white/10 mb-4"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
@@ -96,14 +110,16 @@ const DashboardPage = () => {
 
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-blue"></div>
-            <p className="mt-4 text-gray-600">Loading materials...</p>
+            <LoadingSpinner size="lg" text="Loading materials..." />
           </div>
         ) : materials.length === 0 ? (
-          <Card className="text-center py-12">
+          <Card className="text-center py-12 shadow-lg">
             <CardContent>
-              <BookOpen className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">No materials available yet.</p>
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <BookOpen className="h-10 w-10 text-gray-400" />
+              </div>
+              <p className="text-gray-600 text-lg">No materials available yet.</p>
+              <p className="text-gray-500 text-sm mt-2">Check back later for new content.</p>
             </CardContent>
           </Card>
         ) : (
@@ -111,26 +127,32 @@ const DashboardPage = () => {
             {materials.map((material) => (
               <Card
                 key={material.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => handleMaterialClick(material.id)}
+                className="hover:shadow-xl transition-all duration-300 cursor-pointer group"
+                onClick={() => handleMaterialClick(material.webViewLink)}
               >
                 <CardHeader>
-                  <div className="w-12 h-12 bg-primary-blue/10 rounded-lg flex items-center justify-center mb-3">
-                    <FileText className="h-6 w-6 text-primary-blue" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-brand-red to-red-600 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <FileText className="h-6 w-6 text-white" />
                   </div>
-                  <CardTitle className="text-lg">{material.title}</CardTitle>
-                  <CardDescription>{material.description}</CardDescription>
+                  <CardTitle className="text-lg line-clamp-2">{material.name}</CardTitle>
+                  <CardDescription>
+                    {material.mimeType?.split('/').pop()?.toUpperCase() || 'FILE'}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>{material.author}</span>
-                    <span>{new Date(material.dateAdded).toLocaleDateString()}</span>
+                    <span>
+                      {material.modifiedTime 
+                        ? new Date(material.modifiedTime).toLocaleDateString() 
+                        : 'Unknown date'}
+                    </span>
                   </div>
                   <Button
                     variant="ghost"
-                    className="w-full mt-4 text-navy hover:bg-blue-50"
+                    className="w-full mt-4 text-navy hover:bg-red-50 group-hover:bg-red-50 transition-colors"
                   >
-                    Read Material
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Open in Drive
                   </Button>
                 </CardContent>
               </Card>

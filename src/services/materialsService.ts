@@ -1,24 +1,13 @@
-// import apiClient from './api';
-import { StudyMaterial } from '../data/materials';
+import { getFacultyMaterials, DriveFile } from './facultyService';
 
-// Get materials by faculty - replace with actual API call when available
-export const getMaterialsByFaculty = async (facultyId: string): Promise<StudyMaterial[]> => {
-  // Mock implementation - using dummy data
-  const { studyMaterials } = await import('../data/materials');
-  return studyMaterials.filter(material => material.facultyId === facultyId);
-
-  // Actual API call (commented out for now):
-  // const response = await apiClient.get<StudyMaterial[]>(`/materials/faculty/${facultyId}`);
-  // return response.data;
-};
-
-// Get material by ID - replace with actual API call when available
-export const getMaterialById = async (materialId: string): Promise<StudyMaterial | null> => {
-  // Mock implementation - using dummy data
-  const { studyMaterials } = await import('../data/materials');
-  return studyMaterials.find(material => material.id === materialId) || null;
-
-  // Actual API call (commented out for now):
-  // const response = await apiClient.get<StudyMaterial>(`/materials/${materialId}`);
-  // return response.data;
+export const getMaterialsByFaculty = async (facultyName: string): Promise<DriveFile[]> => {
+  try {
+    console.log('📚 Getting materials for faculty:', facultyName);
+    const materials = await getFacultyMaterials(facultyName);
+    console.log('✅ Materials loaded:', materials.length);
+    return materials;
+  } catch (error) {
+    console.error('❌ Error in materials service:', error);
+    throw error;
+  }
 };

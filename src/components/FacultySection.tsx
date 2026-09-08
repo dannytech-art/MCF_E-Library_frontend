@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   GraduationCap,
   Microscope,
@@ -9,47 +10,29 @@ import {
   Palette,
   ArrowRight,
 } from "lucide-react";
+import { faculties as facultyData } from "../data/faculties";
 
-const faculties = [
-  {
-    title: "Engineering",
-    books: "120 Materials",
-    icon: Cpu,
-    color: "from-blue-600 to-blue-800",
-  },
-  {
-    title: "Science",
-    books: "98 Materials",
-    icon: Microscope,
-    color: "from-sky-500 to-blue-600",
-  },
-  {
-    title: "Arts",
-    books: "74 Materials",
-    icon: Palette,
-    color: "from-red-500 to-red-700",
-  },
-  {
-    title: "Business",
-    books: "90 Materials",
-    icon: Briefcase,
-    color: "from-indigo-600 to-blue-900",
-  },
-  {
-    title: "Law",
-    books: "68 Materials",
-    icon: Scale,
-    color: "from-red-600 to-pink-600",
-  },
-  {
-    title: "Medicine",
-    books: "112 Materials",
-    icon: HeartPulse,
-    color: "from-blue-700 to-cyan-700",
-  },
-];
+// Map faculty names to icons and colors
+const facultyIcons: Record<string, any> = {
+  "Faculty Of Engineering": { icon: Cpu, color: "from-blue-600 to-blue-800" },
+  "Faculty Of Science": { icon: Microscope, color: "from-sky-500 to-blue-600" },
+  "Faculty Of Art": { icon: Palette, color: "from-red-500 to-red-700" },
+  "Faculty Of Social Sciences": { icon: Briefcase, color: "from-indigo-600 to-blue-900" },
+  "Faculty Of Education": { icon: GraduationCap, color: "from-blue-700 to-cyan-700" },
+};
+
+// Default icon if faculty not found
+const defaultIcon = { icon: GraduationCap, color: "from-gray-600 to-gray-800" };
 
 export default function FacultySection() {
+  const navigate = useNavigate();
+
+  const handleFacultyClick = (facultyName: string) => {
+    // Encode the name for URL (spaces become %20)
+    const encodedName = encodeURIComponent(facultyName);
+    navigate(`/dashboard/${encodedName}`);
+  };
+
   return (
     <section className="py-28 bg-slate-50">
       <div className="max-w-7xl mx-auto px-6">
@@ -77,36 +60,38 @@ export default function FacultySection() {
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-20">
-          {faculties.map((faculty, index) => {
-            const Icon = faculty.icon;
+          {facultyData.map((faculty, index) => {
+            const facultyIcon = facultyIcons[faculty.name] || defaultIcon;
+            const Icon = facultyIcon.icon;
 
             return (
               <motion.div
-                key={faculty.title}
+                key={faculty.id}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -10 }}
-                className="group relative overflow-hidden rounded-3xl bg-white shadow-lg hover:shadow-2xl border border-gray-100 transition-all duration-300"
+                onClick={() => handleFacultyClick(faculty.name)}
+                className="group relative overflow-hidden rounded-3xl bg-white shadow-lg hover:shadow-2xl border border-gray-100 transition-all duration-300 cursor-pointer"
               >
                 <div
-                  className={`h-2 bg-gradient-to-r ${faculty.color}`}
+                  className={`h-2 bg-gradient-to-r ${facultyIcon.color}`}
                 />
 
                 <div className="p-8">
                   <div
-                    className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${faculty.color} flex items-center justify-center text-white shadow-lg`}
+                    className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${facultyIcon.color} flex items-center justify-center text-white shadow-lg`}
                   >
                     <Icon size={30} />
                   </div>
 
                   <h3 className="mt-8 text-2xl font-bold text-slate-900">
-                    {faculty.title}
+                    {faculty.name}
                   </h3>
 
                   <p className="mt-3 text-gray-500">
-                    {faculty.books}
+                    {faculty.description}
                   </p>
 
                   <button className="mt-8 flex items-center gap-2 text-red-600 font-semibold group-hover:gap-4 transition-all duration-300">

@@ -4,7 +4,9 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { register as registerService } from '../services/authService';
 import { faculties } from '../data/faculties';
 import { BookOpen } from 'lucide-react';
@@ -13,25 +15,27 @@ const SignupPage = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [facultyId, setFacultyId] = useState('');
-  const [error, setError] = useState('');
+  const [faculty, setFaculty] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { setPendingEmail } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
 
     try {
-      const response = await registerService({ fullName, email, password, facultyId });
-      login(response.user, response.token);
-      
-      // Redirect to faculty dashboard
-      navigate(`/dashboard/${response.user.facultyId}`);
-    } catch (err) {
-      setError('Registration failed. Please try again.');
+      const response = await registerService({ fullName, email, password, faculty });
+      // Store email for OTP verification
+      setPendingEmail(email);
+      showToast('success', 'Account created! Check your email for OTP.');
+      // Redirect to OTP verification page
+      setTimeout(() => {
+        navigate('/verify-otp');
+      }, 500);
+    } catch (err: any) {
+      showToast('error', err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -39,12 +43,14 @@ const SignupPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-black via-gray-900 to-primary-blue flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            <BookOpen className="h-12 w-12 text-primary-red" />
+            <div className="w-16 h-16 bg-gradient-to-br from-brand-red to-red-700 rounded-full flex items-center justify-center shadow-lg">
+              <BookOpen className="h-8 w-8 text-white" />
+            </div>
           </div>
-          <CardTitle className="text-2xl text-center">Create Account</CardTitle>
+          <CardTitle className="text-2xl text-center font-bold">Create Account</CardTitle>
           <CardDescription className="text-center">
             Join MCF E-Library to access your faculty's materials
           </CardDescription>
@@ -52,7 +58,7 @@ const SignupPage = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="fullName" className="text-sm font-medium">
+              <label htmlFor="fullName" className="text-sm font-medium text-gray-700">
                 Full Name
               </label>
               <Input
@@ -62,10 +68,11 @@ const SignupPage = () => {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
+                className="focus:ring-2 focus:ring-brand-red"
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label htmlFor="email" className="text-sm font-medium text-gray-700">
                 Email
               </label>
               <Input
@@ -75,10 +82,11 @@ const SignupPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="focus:ring-2 focus:ring-brand-red"
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
+              <label htmlFor="password" className="text-sm font-medium text-gray-700">
                 Password
               </label>
               <Input
@@ -89,17 +97,19 @@ const SignupPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                className="focus:ring-2 focus:ring-brand-red"
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="faculty" className="text-sm font-medium">
+              <label htmlFor="faculty" className="text-sm font-medium text-gray-700">
                 Faculty
               </label>
               <Select
                 id="faculty"
-                value={facultyId}
-                onChange={(e) => setFacultyId(e.target.value)}
+                value={faculty}
+                onChange={(e) => setFaculty(e.target.value)}
                 required
+                className="focus:ring-2 focus:ring-brand-red"
               >
                 <option value="">Select your faculty</option>
                 {faculties.map((faculty) => (
@@ -109,22 +119,24 @@ const SignupPage = () => {
                 ))}
               </Select>
             </div>
-            {error && (
-              <div className="text-sm text-brand-red text-center">
-                {error}
-              </div>
-            )}
             <Button
               type="submit"
-              className="w-full bg-brand-red hover:bg-red-700"
+              className="w-full bg-gradient-to-r from-brand-red to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg"
               disabled={isLoading}
             >
-              {isLoading ? 'Creating account...' : 'Sign Up'}
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <LoadingSpinner size="sm" />
+                  Creating account...
+                </span>
+              ) : (
+                'Sign Up'
+              )}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
             <span className="text-gray-600">Already have an account? </span>
-            <Link to="/login" className="text-navy hover:underline font-medium">
+            <Link to="/login" className="text-brand-red hover:underline font-medium">
               Sign in
             </Link>
           </div>

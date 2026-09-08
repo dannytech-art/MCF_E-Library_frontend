@@ -1,4 +1,4 @@
-// import apiClient from './api';
+import apiClient from './api';
 
 export interface LoginCredentials {
   email: string;
@@ -9,70 +9,65 @@ export interface RegisterData {
   fullName: string;
   email: string;
   password: string;
-  facultyId: string;
+  faculty: string;
+}
+
+export interface VerifyOtpData {
+  email: string;
+  otp: string;
+}
+
+export interface ResendOtpData {
+  email: string;
+}
+
+export interface User {
+  _id: string;
+  fullName: string;
+  email: string;
+  faculty: string;
+  isVerified: boolean;
 }
 
 export interface AuthResponse {
+  message: string;
   token: string;
-  user: {
-    id: string;
-    fullName: string;
-    email: string;
-    facultyId: string;
-  };
+  data: User;
 }
 
-// Login function - replace with actual API call when available
-export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  // Mock implementation - replace with actual API call
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Mock successful login
-      resolve({
-        token: 'mock-jwt-token',
-        user: {
-          id: '1',
-          fullName: 'Test User',
-          email: credentials.email,
-          facultyId: 'engineering', // Default faculty for mock
-        },
-      });
-    }, 500);
-  });
+export interface ApiMessage {
+  message: string;
+}
 
-  // Actual API call (commented out for now):
-  // const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-  // return response.data;
+export const login = async (
+  credentials: LoginCredentials
+): Promise<AuthResponse> => {
+  const response = await apiClient.post<AuthResponse>('/login', credentials);
+  return response.data;
 };
 
-// Register function - replace with actual API call when available
-export const register = async (data: RegisterData): Promise<AuthResponse> => {
-  // Mock implementation - replace with actual API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        token: 'mock-jwt-token',
-        user: {
-          id: Date.now().toString(),
-          fullName: data.fullName,
-          email: data.email,
-          facultyId: data.facultyId,
-        },
-      });
-    }, 500);
-  });
-
-  // Actual API call (commented out for now):
-  // const response = await apiClient.post<AuthResponse>('/auth/register', data);
-  // return response.data;
+export const register = async (
+  data: RegisterData
+): Promise<AuthResponse> => {
+  const response = await apiClient.post<AuthResponse>('/signup', data);
+  return response.data;
 };
 
-// Logout function
+export const verifyOtp = async (
+  data: VerifyOtpData
+): Promise<AuthResponse> => {
+  const response = await apiClient.post<AuthResponse>('/verify-otp', data);
+  return response.data;
+};
+
+export const resendOtp = async (
+  data: ResendOtpData
+): Promise<ApiMessage> => {
+  const response = await apiClient.post<ApiMessage>('/resend-otp', data);
+  return response.data;
+};
+
 export const logout = async (): Promise<void> => {
-  // Mock implementation - replace with actual API call
   localStorage.removeItem('authToken');
   localStorage.removeItem('user');
-
-  // Actual API call (commented out for now):
-  // await apiClient.post('/auth/logout');
 };
