@@ -3,13 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { register as registerService } from '../services/authService';
 import { faculties } from '../data/faculties';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 const SignupPage = () => {
   const [fullName, setFullName] = useState('');
@@ -17,6 +16,7 @@ const SignupPage = () => {
   const [password, setPassword] = useState('');
   const [faculty, setFaculty] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { setPendingEmail } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -27,10 +27,8 @@ const SignupPage = () => {
 
     try {
       const response = await registerService({ fullName, email, password, faculty });
-      // Store email for OTP verification
       setPendingEmail(email);
       showToast('success', 'Account created! Check your email for OTP.');
-      // Redirect to OTP verification page
       setTimeout(() => {
         navigate('/verify-otp');
       }, 500);
@@ -42,23 +40,41 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-black via-gray-900 to-primary-blue flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-brand-red to-red-700 rounded-full flex items-center justify-center shadow-lg">
-              <BookOpen className="h-8 w-8 text-white" />
+    <div className="min-h-screen flex bg-white">
+      {/* LEFT: FORM */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 bg-white relative">
+        {/* Back button */}
+        <button
+          onClick={() => navigate('/')}
+          className="absolute top-6 left-6 flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors group"
+        >
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          Back
+        </button>
+
+        <div className="w-full max-w-md">
+          {/* Logo */}
+          <div className="flex items-center justify-center mb-8">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
+              <BookOpen className="h-7 w-7 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center font-bold">Create Account</CardTitle>
-          <CardDescription className="text-center">
-            Join MCF E-Library to access your faculty's materials
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="fullName" className="text-sm font-medium text-gray-700">
+
+          {/* Heading */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Create your account
+            </h1>
+            <p className="text-sm text-gray-500">
+              Join MCF E-Library to access your faculty's materials
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Full Name */}
+            <div>
+              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1.5">
                 Full Name
               </label>
               <Input
@@ -68,12 +84,14 @@ const SignupPage = () => {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
-                className="focus:ring-2 focus:ring-brand-red"
+                className="h-11 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
               />
             </div>
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                Email
+
+            {/* Email */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Email address
               </label>
               <Input
                 id="email"
@@ -82,26 +100,40 @@ const SignupPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="focus:ring-2 focus:ring-brand-red"
+                className="h-11 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
               />
             </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-gray-700">
+
+            {/* Password with eye toggle */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
                 Password
               </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="focus:ring-2 focus:ring-brand-red"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="h-11 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 pr-11"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <label htmlFor="faculty" className="text-sm font-medium text-gray-700">
+
+            {/* Faculty */}
+            <div>
+              <label htmlFor="faculty" className="block text-sm font-medium text-gray-700 mb-1.5">
                 Faculty
               </label>
               <Select
@@ -109,7 +141,7 @@ const SignupPage = () => {
                 value={faculty}
                 onChange={(e) => setFaculty(e.target.value)}
                 required
-                className="focus:ring-2 focus:ring-brand-red"
+                className="h-11 rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
               >
                 <option value="">Select your faculty</option>
                 {faculties.map((faculty) => (
@@ -119,10 +151,12 @@ const SignupPage = () => {
                 ))}
               </Select>
             </div>
+
+            {/* Submit */}
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-brand-red to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg"
               disabled={isLoading}
+              className="w-full h-11 rounded-lg bg-gray-900 hover:bg-black text-white font-medium transition-colors"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
@@ -134,14 +168,48 @@ const SignupPage = () => {
               )}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
-            <span className="text-gray-600">Already have an account? </span>
-            <Link to="/login" className="text-brand-red hover:underline font-medium">
+
+          {/* Footer */}
+          <div className="mt-6 text-center text-sm">
+            <span className="text-gray-500">Already have an account? </span>
+            <Link to="/login" className="text-gray-900 font-semibold hover:underline">
               Sign in
             </Link>
           </div>
-        </CardContent>
-      </Card>
+
+          <p className="mt-8 text-xs text-center text-gray-400">
+            By continuing, you agree to our Terms of Service and Privacy Policy.
+          </p>
+        </div>
+      </div>
+
+      {/* RIGHT: IMAGE */}
+      <div className="hidden lg:block lg:w-1/2 relative">
+        <img
+          src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1400&q=80"
+          alt="Library"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
+
+        <div className="absolute bottom-0 left-0 right-0 p-12 text-white">
+          <p className="text-xs tracking-widest uppercase mb-3 text-white/70">
+            MCF E-Library
+          </p>
+          <h2 className="text-3xl font-bold mb-3 leading-tight">
+            Discover your next chapter
+          </h2>
+          <p className="text-sm text-white/80 max-w-md leading-relaxed">
+            Access curated study materials, lecture notes, and exam resources — tailored to your faculty at the University of Nigeria, Nsukka.
+          </p>
+
+          <div className="flex gap-2 mt-6">
+            <span className="w-6 h-1 rounded-full bg-white" />
+            <span className="w-2 h-1 rounded-full bg-white/40" />
+            <span className="w-2 h-1 rounded-full bg-white/40" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

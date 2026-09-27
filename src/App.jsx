@@ -1,6 +1,7 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { BookmarkProvider } from './contexts/BookmarkContext';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -9,25 +10,42 @@ import VerifyOtpPage from './pages/VerifyOtpPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 
+// Pages that should NOT show the top navbar
+// (they have their own layout — split screen, or sidebar)
+const HIDE_NAVBAR_PREFIXES = ['/login', '/signup', '/verify-otp', '/dashboard'];
+
+function AppContent() {
+  const location = useLocation();
+
+  const hideNavbar = HIDE_NAVBAR_PREFIXES.some((prefix) =>
+    location.pathname.startsWith(prefix)
+  );
+
+  return (
+    <div className="min-h-screen">
+      {!hideNavbar && <Navbar />}
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
+        <Route path="/dashboard/:facultyName" element={<DashboardPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <Router>
-          <div className="min-h-screen">
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/verify-otp" element={<VerifyOtpPage />} />
-              {/* Changed facultyId to facultyName */}
-              <Route path="/dashboard/:facultyName" element={<DashboardPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </div>
-        </Router>
+        <BookmarkProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </BookmarkProvider>
       </ToastProvider>
     </AuthProvider>
   );
